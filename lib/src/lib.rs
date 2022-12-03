@@ -439,6 +439,7 @@ impl Lang {
             //     tree_sitter_swift::LOCALS_QUERY,
             // )
             // .expect("loading tree-sitter-swift"),
+            #[cfg(feature = "tree-sitter-typescript")]
             Lang::Ts => HighlightConfiguration::new(
                 tree_sitter_typescript::language_typescript(),
                 tree_sitter_typescript::HIGHLIGHT_QUERY,
@@ -446,6 +447,8 @@ impl Lang {
                 tree_sitter_typescript::LOCALS_QUERY,
             )
             .expect("loading tree-sitter-typescript"),
+
+            #[cfg(feature = "tree-sitter-zig")]
             Lang::Zig => HighlightConfiguration::new(
                 tree_sitter_zig::language(),
                 tree_sitter_zig::HIGHLIGHTS_QUERY,
