@@ -22,6 +22,7 @@ impl From<&String> for Style {
 }
 
 /// A theme defining colors and modifiers to be used for syntax highlighting.
+#[allow(dead_code)]
 pub struct Theme {
     pub(crate) style_map: HashMap<usize, Style>,
     pub(crate) foreground: Style,

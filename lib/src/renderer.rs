@@ -49,7 +49,6 @@ pub(crate) const HIGHLIGHT_NAMES: [&str; 40] = [
 /// HTML syntax highlighting renderer.
 pub struct Renderer {
     renderer: HtmlRenderer,
-    theme: theme::Theme,
     css_classes: HashMap<usize, String>,
     configs: HashMap<Lang, HighlightConfiguration>,
 }
@@ -68,34 +67,9 @@ impl Renderer {
 
         Self {
             renderer: HtmlRenderer::new(),
-            theme,
             css_classes,
             configs: HashMap::default(),
         }
-    }
-
-    /// Generate CSS block to be included in the `<style></style>` block or in an external CSS
-    /// file.
-    pub fn css(&self) -> String {
-        String::from(
-            r"<style>
-    .tsc-bg {
-      font-family: monospace;
-      font-size: 80%;
-      background-color: #282C34;
-    }
-    .line-number {
-      user-select: none;
-      text-align: right;
-      color: #3E4452;
-      padding: 0 10px;
-    }
-    .tsc-line {
-      white-space: pre;
-      color: #ABB2BF;
-    }
-  </style>",
-        )
     }
 
     /// Render `source` based on the `lang`.
@@ -129,21 +103,27 @@ impl Renderer {
         writeln!(
             &mut raw_out,
             r#"
-                <table class="tsc-bg">
-                  <tbody>"#
+<div class="tsc-bg">
+    <table class="tsc-table">
+        <tbody>"#
         )
         .unwrap();
         for (i, line) in self.renderer.lines().enumerate() {
             writeln!(
                 &mut raw_out,
-                "<tr><td class=line-number>{i}</td><td class=tsc-line>{}</td></tr>",
-                // i + 1,
-                line
+                "           <tr><td class=line-number>{i}</td><td class=tsc-line>{}</td></tr>",
+                line.trim_end()
             )
             .unwrap();
         }
 
-        writeln!(&mut raw_out, "</tbody></table>").unwrap();
+        writeln!(
+            &mut raw_out,
+            "        </tbody>
+    </table>
+</div>"
+        )
+        .unwrap();
 
         Ok(raw_out)
     }
