@@ -3,34 +3,66 @@ use std::collections::HashMap;
 use std::fmt::Write;
 use tree_sitter_highlight::{Highlight, HighlightConfiguration, Highlighter, HtmlRenderer};
 
-pub(crate) const HIGHLIGHT_NAMES: [&str; 27] = [
+pub(crate) const HIGHLIGHT_NAMES: [&str; 59] = [
+    "annotation",
     "attribute",
+    "boolean",
+    "character",
     "comment",
+    "conditional",
     "constant",
     "constant.builtin",
+    "constant.macro",
     "constructor",
-    "escape",
+    "error",
+    "exception",
+    "field",
+    "float",
     "function",
     "function.builtin",
-    "function.method",
     "function.macro",
     "include",
     "keyword",
+    "keyword.function",
+    "keyword.operator",
     "label",
+    "method",
     "namespace",
+    "none",
     "number",
     "operator",
+    "parameter",
+    "parameter.reference",
     "property",
-    "punctuation",
-    "punctuation.bracket",
     "punctuation.delimiter",
+    "punctuation.bracket",
+    "punctuation.special",
     "repeat",
     "string",
+    "string.regex",
+    "string.escape",
+    "symbol",
+    "tag",
+    "tag.delimiter",
+    "text",
+    "text.strong",
+    "text.emphasis",
+    "text.underline",
+    "text.strike",
+    "text.title",
+    "text.literal",
+    "text.uri",
+    "text.math",
+    "text.reference",
+    "text.enviroment",
+    "text.enviroment.name",
+    "note",
+    "warning",
+    "danger",
     "type",
     "type.builtin",
     "variable",
     "variable.builtin",
-    "variable.parameter",
 ];
 
 /// HTML syntax highlighting renderer.
@@ -49,7 +81,10 @@ impl Renderer {
         for index in theme.style_map.keys() {
             css_classes.insert(
                 *index,
-                format!(r#"class="tsc-{}""#, HIGHLIGHT_NAMES[*index]),
+                format!(
+                    r#"class="tsc-{}""#,
+                    HIGHLIGHT_NAMES[*index].replace('.', "_")
+                ),
             );
         }
 
@@ -64,19 +99,25 @@ impl Renderer {
     /// Generate CSS block to be included in the `<style></style>` block or in an external CSS
     /// file.
     pub fn css(&self) -> String {
+        let mut root_str = String::new();
         let mut css = String::new();
 
-        let _ = writeln!(
-            css,
-            ":root {{ --tsc-main-fg-color: {}; --tsc-main-bg-color: {}; }}",
-            self.theme.foreground.color, self.theme.background.color
-        );
+        root_str.push_str(&format!(
+            ":root {{ --tsc-main-fg-color: {}; --tsc-main-bg-color: {}; ",
+            self.theme.foreground.color, self.theme.background.color,
+        ));
 
         for (index, style) in &self.theme.style_map {
+            root_str.push_str(&format!(
+                "--tsc-{}: {}; ",
+                HIGHLIGHT_NAMES[*index].replace('.', "_"),
+                style.color
+            ));
             let _ = write!(
                 css,
-                ".tsc-{} {{ color: {};",
-                HIGHLIGHT_NAMES[*index], style.color
+                ".tsc-{} {{ color: var(--tsc-{}); ",
+                HIGHLIGHT_NAMES[*index].replace('.', "_"),
+                HIGHLIGHT_NAMES[*index].replace('.', "_")
             );
 
             if style.is_bold {
@@ -91,15 +132,12 @@ impl Renderer {
         }
 
         css.push_str(".tsc-line { word-wrap: normal; white-space: pre; }\n");
-        css
+        root_str.push_str("}}");
+        root_str + &css
     }
 
     /// Render `source` based on the `lang`.
-    pub fn render<'a>(
-        &'a mut self,
-        lang: &Lang,
-        source: &[u8],
-    ) -> Result<impl Iterator<Item = &'a str>, Error> {
+    pub fn render<'a>(&'a mut self, lang: &Lang, source: &[u8]) -> Result<String, Error> {
         fn foo<'a>(_: &str) -> Option<&'a HighlightConfiguration> {
             None
         }
@@ -126,7 +164,32 @@ impl Renderer {
                 None => "".as_bytes(),
             },
         )?;
+        let mut raw_out = String::new();
+        writeln!(
+            &mut raw_out,
+            r#"
+<div class="tsc-bg">
+    <table class="tsc-table">
+        <tbody>"#
+        )
+        .unwrap();
+        for (i, line) in self.renderer.lines().enumerate() {
+            writeln!(
+                &mut raw_out,
+                "           <tr><td class=line-number>{i}</td><td class=tsc-line>{}</td></tr>",
+                line.trim_end()
+            )
+            .unwrap();
+        }
 
-        Ok(self.renderer.lines())
+        writeln!(
+            &mut raw_out,
+            "        </tbody>
+    </table>
+</div>"
+        )
+        .unwrap();
+
+        Ok(raw_out)
     }
 }

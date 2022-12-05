@@ -11,7 +11,7 @@ license = "MIT"
 [dependencies]
 thiserror = "1"
 toml = { version = "0", default-features = false }
-tree-sitter-highlight = "0.20"
+tree-sitter-highlight = "0.20.1"
 # tree-sitter-bash = { path = "../grammars/tree-sitter-bash", optional = true }
 tree-sitter-c = { path = "../grammars/tree-sitter-c", optional = true }
 tree-sitter-c-sharp = { path = "../grammars/tree-sitter-c-sharp", optional = true }

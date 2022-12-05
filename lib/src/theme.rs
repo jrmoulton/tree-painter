@@ -89,7 +89,7 @@ impl Theme {
         let mut style_map = HashMap::default();
 
         for (index, name) in HIGHLIGHT_NAMES.iter().enumerate() {
-            if let Some(style) = fg_color(*name)? {
+            if let Some(style) = fg_color(name)? {
                 style_map.insert(index, style);
             }
         }
