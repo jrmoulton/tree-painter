@@ -106,6 +106,9 @@ impl Renderer {
             ":root {{ --tsc-main-fg-color: {}; --tsc-main-bg-color: {}; ",
             self.theme.foreground.color, self.theme.background.color,
         ));
+        for (name, color) in &self.theme.palette {
+            root_str.push_str(&format!("--{}: {}; ", name, color.as_str().unwrap()));
+        }
 
         for (index, style) in &self.theme.style_map {
             root_str.push_str(&format!(
@@ -132,7 +135,7 @@ impl Renderer {
         }
 
         css.push_str(".tsc-line { word-wrap: normal; white-space: pre; }\n");
-        root_str.push_str("}}");
+        root_str.push_str("}\n");
         root_str + &css
     }
 
@@ -168,7 +171,7 @@ impl Renderer {
         writeln!(
             &mut raw_out,
             r#"
-<div class="tsc-bg">
+<div class="tsc-table-bg">
     <table class="tsc-table">
         <tbody>"#
         )

@@ -2,9 +2,10 @@ use crate::renderer::HIGHLIGHT_NAMES;
 use crate::Error;
 use std::collections::HashMap;
 use std::convert::From;
-use toml::value::Table;
+use toml::value::{Map, Table};
 use toml::Value;
 
+#[derive(Clone)]
 pub(crate) struct Style {
     pub color: String,
     pub is_bold: bool,
@@ -22,8 +23,10 @@ impl From<&String> for Style {
 }
 
 /// A theme defining colors and modifiers to be used for syntax highlighting.
+#[derive(Clone)]
 pub struct Theme {
     pub(crate) style_map: HashMap<usize, Style>,
+    pub(crate) palette: Map<String, Value>,
     pub(crate) foreground: Style,
     pub(crate) background: Style,
 }
@@ -103,6 +106,7 @@ impl Theme {
 
         Ok(Self {
             style_map,
+            palette: palette.as_table().cloned().unwrap(),
             foreground,
             background,
         })
